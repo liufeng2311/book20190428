@@ -12,9 +12,8 @@ import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 
 @Configuration
-@EnableCaching//开启注解
+@EnableCaching//开始缓存注解的功能
 @JsonAutoDetect
-@SuppressWarnings({"rawtypes","unchecked"})
 public class RedisConfig {
 /*	@Bean
     public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
@@ -37,9 +36,9 @@ public class RedisConfig {
     }*/
 @Bean
   public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
-      RedisTemplate<String, Object> redisTemplate = new RedisTemplate();
+      RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
       redisTemplate.setConnectionFactory(redisConnectionFactory);
-      FastJsonRedisSerializer<Object> fastJsonRedisSerializer = new FastJsonRedisSerializer(Object.class);
+      FastJsonRedisSerializer<Object> fastJsonRedisSerializer = new FastJsonRedisSerializer<Object>(Object.class);
       ParserConfig.getGlobalInstance().setAutoTypeSupport(true);
       redisTemplate.setValueSerializer(fastJsonRedisSerializer);
       redisTemplate.setHashValueSerializer(fastJsonRedisSerializer);

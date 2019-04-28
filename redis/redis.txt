@@ -1,0 +1,2 @@
+1.如何保证key值的唯一性?
+2.配置文件中spring.cache.cache-names的作用？为什么每个注解还要指定空间名cachename
