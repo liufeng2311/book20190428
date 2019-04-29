@@ -15,7 +15,7 @@ import com.beiming.entity.User;
 import com.beiming.mapper.UserMapper;
 import com.beiming.service.UserService;
 @Service
-@CacheConfig(cacheNames = "redisName") //使用缓存注解时，必须规定缓存的名字，用户分空间存储，通过@CacheConfig统一配置
+@CacheConfig(cacheNames = "redis") //使用缓存注解时，必须规定缓存的名字，用户分空间存储，通过@CacheConfig统一配置
 public class UserSrviceImpl implements UserService{
 
   private static final Logger Logger = LoggerFactory.getLogger(UserSrviceImpl.class);
@@ -23,7 +23,7 @@ public class UserSrviceImpl implements UserService{
   private UserMapper userMapper;
 
   @Override
-  @Cacheable(key = "123")
+  @Cacheable(key = "123",cacheManager = "redisName")
   public List<User> getUserList() {
     Logger.info("==========查询数据库=========");
     List<User> userList = userMapper.selectAll();
@@ -36,7 +36,6 @@ public class UserSrviceImpl implements UserService{
     User user = new User();
     BeanUtils.copyProperties(insertUser, user);
     userMapper.insert(user);
-    
   }
 
   @Override
