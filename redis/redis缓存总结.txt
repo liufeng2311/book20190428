@@ -1,0 +1,54 @@
+SpringBoot使用缓存注解时需要配置缓存管理器，首先配置redis缓存管理器
+1.使用SpringBoot为我们提供的RedisCacheManager
+	spring.cache.type = REDIS                                 //该配置为必须项，告诉spring你要使用哪种缓存，自定义缓存管理器时也需要配置(书上说spring能自动检测的，自己在测试自定义管理器时失败)
+	spring.cache.cache-names=redisName                        //缓存名称，作用未知(!!!!!!) ，使用前缀时的空间名，在初始化时配置，后期也可通过属性配置
+	spring.cache.redis.use-key-prefix=true                    //key值是否使用前缀，默认true，
+	spring.cache.redis.key-prefix=redis                       //定义该缓存管理器key值的前缀，在上个配置为true时生效
+	spring.cache.redis.cache-null-values=true                 //是否允许缓存null值
+	spring.cache.redis.time-to-live=60000ms                   //设置缓存有效时间，单位ms
+	此时在我们使用缓存注解时，使用的便是SpringBoot为我们提供的缓存管理器
+2.自定义缓存管理器RedisCacheManager(自定义缓存管理器时，以上注解将失效)
+    @Bean(value = "lf")
+    public CacheManager initRedisCacheManager(RedisConnectionFactory redisConnectionFactory) {
+      RedisCacheWriter cacheWriter = RedisCacheWriter.nonLockingRedisCacheWriter(redisConnectionFactory); //创建加锁的写入器，实际操作redis的类
+      RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig(); //获取缓存默认的配置,并添加如下配置
+      config.serializeKeysWith(SerializationPair.fromSerializer(new StringRedisSerializer())); //规定序列化
+      //需注意,以下赋值不是set方法！！！！！
+      config = config.disableKeyPrefix(); //禁用前缀
+      config = config.entryTtl(Duration.ofMinutes(3)); //设置缓存三分钟
+      RedisCacheManager redisCacheManager = new  RedisCacheManager(cacheWriter, config); //构造redis缓存管理器
+      return redisCacheManager;
+    }
+	我们可以创建多个缓存管理器
+	@Bean(value="ll")
+	@Primary   //当有多个缓存管理器时，我们必须指定一个默认的
+    public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
+        RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofMinutes(10)).disableKeyPrefix();  //对统一对象连续赋值
+        return RedisCacheManager
+                .builder(RedisCacheWriter.nonLockingRedisCacheWriter(redisConnectionFactory))
+                .cacheDefaults(redisCacheConfiguration).build(); //使用build构造器创建对象
+    }
+3.注解问题
+    同一个类中，当一个使用缓存注解的方法去调用另一个使用缓存注解的方法时，不会从他的redis缓存中取数，还是直接调用他的方法，因为
+    注解都是通过aop实现的，同一个class文件中不存在aop问题。
+	当多个key缓存的是同一数据时，容易造成脏读，所以这些易变缓存的的有效时间要设置的短点
+4.缓存注解
+	@Cacheable(value = "缓存名")等同于@Cacheable(cacheName = "缓存名")  value是cacheName的别名
+	调用时，如果缓存中有，则取缓存，否则将查询出的结果放到缓存里
+	@CachePut(value = "缓存名")
+	调用时，每次都执行方法，并将结果放到缓存里
+	@CacheEvict(value = "缓存名",beforeInvocation = false)
+	调用时，在方法后移除该缓存，beforeInvocation为true时，表示方法前以后缓存，默认false，表示方法后移除缓存
+	@CacheConfig(value = "缓存名")
+	我们每次使用注解时都要规定value的值，我们可以通过设置该类注解统一规定
+5.缓存注解常用属性
+	cacheManager = "缓存管理器"   //当存在多个管理器时，我们指定使用哪一个
+	keyGenerator = "key生成类"    //指定该key的生成逻辑
+	key = "键值"                  //缓存时的键值
+	condition = "表达式"          //是否缓存的条件判断
+	unless = "表达式"             //是否缓存的条件判断
+	
+	
+	
+  
