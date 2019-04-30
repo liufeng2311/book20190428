@@ -10,7 +10,10 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.cache.RedisCacheWriter;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -18,28 +21,35 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import com.alibaba.fastjson.parser.ParserConfig;
 import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import redis.clients.jedis.JedisPoolConfig;
 
 @Configuration
 @EnableCaching//开始缓存注解的功能
 public class RedisConfig {
 
+  RedisConnectionFactory redisConnectionFactory = null ; //创建工厂时不可以直接作为参数传入方法，那样spring会为我们创建一个工厂类，造成循环
   @Bean
   public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
       RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
+      redisTemplate.setKeySerializer(redisTemplate.getStringSerializer()); //获取redisTemplate自己的字符串序列化并赋值到key和value
+      //redisTemplate.setValueSerializer(redisTemplate.getStringSerializer());
+      //redisTemplate.setValueSerializer(new FastJsonRedisSerializer<Object>(Object.class));
+      redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(Object.class));
+      redisTemplate.setHashKeySerializer(redisTemplate.getStringSerializer()); 
+      redisTemplate.setHashValueSerializer(redisTemplate.getStringSerializer());
       redisTemplate.setConnectionFactory(redisConnectionFactory);
-      FastJsonRedisSerializer<Object> fastJsonRedisSerializer = new FastJsonRedisSerializer<Object>(Object.class);
+      /*FastJsonRedisSerializer<Object> fastJsonRedisSerializer = new FastJsonRedisSerializer<Object>(Object.class);
       ParserConfig.getGlobalInstance().setAutoTypeSupport(true);
       redisTemplate.setValueSerializer(fastJsonRedisSerializer);
       redisTemplate.setHashValueSerializer(fastJsonRedisSerializer);
       redisTemplate.setKeySerializer(new StringRedisSerializer());
       redisTemplate.setHashKeySerializer(new StringRedisSerializer());
-      redisTemplate.afterPropertiesSet();
+      redisTemplate.afterPropertiesSet();*/
       return redisTemplate;
   }
    
-  //自定义配置缓存管理器，配置文件中的配置失效
+  //自定义配置缓存管理器,配置文件中的配置失效
     @Bean(value="ll")
-
     public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
         RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(10)).disableKeyPrefix(); // 设置缓存有效期一小时
@@ -60,5 +70,24 @@ public class RedisConfig {
       config = config.entryTtl(Duration.ofMinutes(3)); //设置缓存三分钟
       RedisCacheManager redisCacheManager = new  RedisCacheManager(cacheWriter, config);
       return redisCacheManager;
+    }
+    
+    
+    //创建redis连接工厂,每次需要从工厂获取连接，为了简化，spring提供了RedisTemplate，使用时，他每次都是从工厂里取一条连接
+    @Bean(name = "RedisConnectionFactory")
+    public RedisConnectionFactory initRedisConnectionFactory() {
+      if(redisConnectionFactory != null) {
+        return redisConnectionFactory;
+      }
+      JedisPoolConfig pool = new JedisPoolConfig();
+      pool.setMaxIdle(30);  //最大空闲数
+      pool.setMaxTotal(50); //最大连接数
+      pool.setMaxWaitMillis(2000); //最大等待毫秒数
+      JedisConnectionFactory jedis = new JedisConnectionFactory(pool);
+      RedisStandaloneConfiguration configuration = jedis.getStandaloneConfiguration();
+      configuration.setHostName("127.0.0.1");
+      configuration.setPort(6379);
+      return jedis;
+      
     }
 }

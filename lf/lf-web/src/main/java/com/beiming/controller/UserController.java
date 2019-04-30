@@ -31,6 +31,12 @@ public class UserController {
   }
   
   @ApiOperation(value = "获取用户列表", notes = "获取用户列表")
+  @RequestMapping(value = "/getUser1", method = RequestMethod.GET)
+  public ResultModel getUserList1(){
+    return ResultModel.success(userService.getUserList1());
+  }
+  
+  @ApiOperation(value = "获取用户列表", notes = "获取用户列表")
   @RequestMapping(value = "/insertUser", method = RequestMethod.POST)
   public ResultModel insertUser(@RequestBody @Valid InsertUserRequestDTO user){
     userService.insertUser(user);

@@ -11,6 +11,11 @@ public interface UserService {
    * @return
    */
 	List<User> getUserList();
+	/**
+	 * 获取用户列表
+	 * @return
+	 */
+	List<User> getUserList1();
 	
 	/**
 	 * 新增用户

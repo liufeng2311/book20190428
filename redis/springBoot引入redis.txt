@@ -1,0 +1,30 @@
+1.SpringBoot引入redis
+	<dependency>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-data-redis</artifactId>
+		<exclusions>
+			<exclusion>
+				<groupId>io.lettuce</groupId>                        //springboot提供的redis客户端为lettuce，是线程安全的异步客户端，我很使用jedis同步客户端，所以排除此依赖
+				<artifactId>lettuce-core</artifactId>
+			</exclusion>
+		</exclusions>
+	</dependency>
+	<dependency>
+		<groupId>redis.clients</groupId>                             //引入jedis客户端，使用线程池保证安全(每次执行都是取一条新的连接)
+		<artifactId>jedis</artifactId>
+	</dependency>
+2.Spring如何对redis进行操作的
+	Jedis就是spring对redis操作的常用驱动，我们通过获取jedis对象对redis进行操作。
+3.获取jedis对象
+	RedisConnectionFactory工厂接口用于生成RedisConnection连接接口，JedisConnection是RedisConnection是实现类，包含jedis，用于操作redis
+	RedisConnectionFactory通过配置连接池生成多条链接，每次操作jedis都会新取一条连接
+4.RedisTemplate(每次操作都会从连接工厂里取一条连接，执行完后会关闭连接)
+	序列化：
+	JdkSerializationRedisSerializer,默认的序列化方式,但是该序列化后存储的方式不直观，需要我们修改
+	StringSerializer               ,会以字符串的形式存储，""中间的内容，不包括引号,不能存储对象（需将对象(集合)转成json字符串）,对象需要实现序列化接口
+	Jackson2JsonRedisSerializer    ,会以json的形式存储，序列化时设置泛型为Object.class,存储value的全部内容，包括""，对象不用实现序列化接口，可以直接存储对象和集合
+5.redis操作类型有其中，常用的有五种(String,hash,list,set,zset),不常用的(地理位置和基数)
+6.RedisTemplate默认一次操作都取一条连接，用完释放，如果一条连接操作多个命令，需使用Bound***Operations,绑定key值，进行多次操作（依旧是多长连接）
+7.RedisTemplate一条间接进行多次操作SessionCallback、RedisCallback,优先使用前者
+	
+	
