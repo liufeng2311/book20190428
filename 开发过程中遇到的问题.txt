@@ -1,0 +1,12 @@
+﻿1.验证注解@Valid
+	对于我们定义好的接收参数实体类，我们需要在引用时加入@Valid，如
+	controller
+	public APIResult getObjectPerson(@RequestBody @Valid HelpSerachRequestDTO helpSerachRequestDTO) {}
+	对象参数
+	private @Valid PersonInfoRequestDTO personInfo;
+	
+	@Valid
+	private PersonInfoRequestDTO personInfo;
+	
+	总结:我们对PersonInfoRequestDTO类中的属性进行了验证，如果需要验证起效，需要在引用的对象前或者属性前加@Valid
+2.

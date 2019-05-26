@@ -1,0 +1,25 @@
+1.事务的传播行为(关注的是子方法)
+	事务的传播行为指的是A方法调用B方法，B方法是独立的事务还是引用A方法的事务
+2.事务的7中传播行为
+	REQUIRED(TransactionDefinition.PROPAGATION_REQUIRED),它是Spring默认的事物传播行为
+	A方法没有事务时，则新建默认事务运行B方法，A和B相互独立，反生异常，只回滚自己的方法
+	A方法有事务时，AB使用共同的事务，有一个发生异常，全部回滚
+	
+	REQUIRES_NEW(TransactionDefinition.PROPAGATION_REQUIRES_NEW)
+	无论当前事务是否存在，都会创建新事务运行方法，AB相互独立，反生异常，只回滚自己的方法
+	
+	NESTED(TransactionDefinition.PROPAGATION_NESTED);
+	当前方法调用字方法时，子方法发生异常，只回滚子方法执行过的sql，不回滚当前方法的事务
+	
+	SUPPORTS(TransactionDefinition.PROPAGATION_SUPPORTS)
+	支持事务，当前有事务，沿用事务，当前没有，则不用事务
+	
+	MANDATORY(TransactionDefinition.PROPAGATION_MANDATORY)
+	必须使用事务，当前没有事务，抛出异常，否则沿用事务
+	
+	NOT_SUPPORTED(TransactionDefinition.PROPAGATION_NOT_SUPPORTED)
+	将事务挂起，不支持事物
+	
+	NEVER(TransactionDefinition.PROPAGATION_NEVER)
+	不支持事物，存在事务，将抛出异常
+	

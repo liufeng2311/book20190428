@@ -1,0 +1,16 @@
+1.参数获取方式
+	无注解获取参数，参数拼接在url上：参数名与方法名相同即可，不存则表示默认值
+	
+	@RequestParam:当前后端命名不一致时，可以通过该注解做对应，@RequestParam(user_id) String userId,表示前端user_id对应后台userId
+	默认情况该注解不能为空，可以设置它的required = false ，表示可以不传
+	
+	传递数组：前台直接将各个元素用逗号隔开，后台用数组接受即可，比如：前端：arr=1,2,3,4，后端：int [] arr
+	
+	@RequestBody:接受参数类型为application/json类型的数据
+	
+	@PathVariable:获取url中绑定的参数
+	
+	@DateTimeFormat(iso = ISO.DATE) Date date：格式化日期，也可以直接在配置文件上规定:spring.mvc.date-format = yyyy-MM-dd
+	
+	@NumberFormat(pattern = "#,###,###") Double number：格式化数字
+	

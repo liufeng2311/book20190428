@@ -1,0 +1,25 @@
+1.三要素：
+	资源：每一个url对应一个资源
+	表现：数据的表现形式(常用json)
+	状态转换：每个资源对应的状态（增删改查对应不同的请求方式）
+2.约定：
+	url中使用名词而不是动词
+	参数超过五个采用Body体传参
+3.请求方式
+	@PostMapping("/user"):创建新的用户资源
+	@GetMapping("/user/{id}")：获取指定id的用户资源，通过@PathVariable("id")注解获取url中的参数
+	@GetMapping("/user/{id}/{name}/{note}")：多个参数时，用逗号隔开，分别获取@PathVariable("id"),@PathVariable("name"),@PathVariable("note")
+	@PutMapping("user/{id}"):修改用户全部资源
+	@PatchMapping("/user/{id}/{username}"):修改用户部分资源，不常用
+	@DeleteMapping("/user/{id}"):删除用户信息
+4.设置请求和返回的数据类型
+	@PostMapping(value = "/printUser" ,consumes = MediaType.ALL_VALUE ,produces = MediaType.APPLICATION_JSON_VALUE)
+	consumes = MediaType.ALL_VALUE                  //设置允许所有数据类型
+	produces = MediaType.APPLICATION_JSON_VALUE     //设置返回json数据类型
+5.设置请求头
+	HttpHeaders headers = new HttpHeaders();
+    headers.add("as", "as");
+6.修改返回code
+	@ResponseStatus(code = HttpStatus.CREATED) //修改返回code，默认请求成功返回200，我们修改为添加成功，返回201
+	
+	
